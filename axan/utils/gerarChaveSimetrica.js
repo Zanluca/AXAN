@@ -1,19 +1,25 @@
-const crypto = require('crypto');
+var crypto = require('crypto'),
+    algorithm = 'aes-256-ctr',
+    password = 'd6F3Efeq';
 
-module.exports = function (bits) {
+// http://lollyrock.com/articles/nodejs-encryption/
 
-   /**
-    * DiffieHellman é usado na verdade para criptografia
-    * assimetrica, mas atende a necessidade, embora seja
-    * mais custoso.
-    */
-   const generator = crypto.createDiffieHellman(bits);
-   // https://nodejs.org/dist/latest-v6.x/docs/api/crypto.html#crypto_class_diffiehellman
-   const publicKey = generator.generateKeys('base64');
-   const privateKey = generator.getPrivateKey('base64');
+function encrypt(text) {
+  var cipher = crypto.createCipher(algorithm,password)
+  var crypted = cipher.update(text,'utf8','hex')
+  crypted += cipher.final('hex');
+  return crypted;
+}
+ 
+function decrypt(text) {
+  var decipher = crypto.createDecipher(algorithm,password)
+  var dec = decipher.update(text,'hex','utf8')
+  dec += decipher.final('utf8');
+  return dec;
+}
+ 
+var hw = encrypt("hello world")
 
-   //console.log("Public Key: " + publicKey);
-   //console.log("Private Key: " + privateKey);
-
-   return publicKey;
-};
+console.log(hw);
+// outputs hello world
+console.log(decrypt(hw));

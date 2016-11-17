@@ -16,6 +16,8 @@ global.maxnumberRequestKeyLogon = 3;
 global.maxNumberRequestLogon = 3;
 global.timeForNextRequest = ms('30s');
 
+// http://expressjs.com/pt-br/guide/error-handling.html
+
 app.post('/api/logon/solicita-acesso', solicitarAcesso);
 
 app.post('/api/logon', logon);

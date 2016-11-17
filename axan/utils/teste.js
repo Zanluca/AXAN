@@ -6,9 +6,9 @@ var secretKey = '';//gerarChaveSimetrica(512);
 console.log("secretKey: " + secretKey);
 
 var token = jwt.sign({
-	expiresIn: '2m',
-  algorithm: 'ES384', 
-  data: {
+   expiresIn: '2m',
+   algorithm: 'ES384', 
+   data: {
       user: 'joao_paulosg',
       password: '123456'
   }

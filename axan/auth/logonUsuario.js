@@ -26,57 +26,26 @@ module.exports = function(req, res) {
             user.numberRequestLogon = 0;
             const tempoEspera = ms((user.timeForNextRequest - Date.now()), { long: true });
             console.log(msgError + ', aguarde: ' + tempoEspera);
-            return res.json({
-            result: {
-               error: msgError + ', aguarde: ' + tempoEspera
-            }
-            });
+            return res.status(400).send(msgError + ', aguarde: ' + tempoEspera);
       // Se não excedeu a quantidade de tentativas incrementa numberRequestLogon
       } else if (user.numberRequestLogon <= maxNumberRequestLogon) {
             user.numberRequestLogon += 1;
 
-            // Realiza o processo de validação			
-            jwt.verify(token, user.key, function(err, decoded) {
-               // Aconteceu um erro na decodificação do token
-               if (err) {
-                  console.log(err);
-                  return res.json({
-                     result: {
-                        error: err
-                     }
-                  });
-               // Conseguiu decodificcar o token, fazer verificações
-               } else {
-                  console.log(decoded.data);
-                  // Verificar se o token não expirou
-                  if (decoded.exp <= Date.now()) {
-                     error = 'Erro: Acesso Expirado, faça login novamente';
-                     return res.json({
-                        result: {
-                           error: {
-                              name: 'TokenExpiredError',
-                              message: 'jwt expired'
-                           }
-                        }
-                     });
-                  }
+            // Gerar os hashs do user e password 
+            const hashUser = gerarHash(decoded.data.user, algoritmHash, input_encoding, encoding);
+            const hashPassword = gerarHash(decoded.data.password, algoritmHash, input_encoding, encoding);
+            console.log("usuario: " + hashUser);
+            console.log("senha: " + hashPassword);
 
-                  // Gerar os hashs do user e password 
-                  const hashUser = gerarHash(decoded.data.user, algoritmHash, input_encoding, encoding);
-                  const hashPassword = gerarHash(decoded.data.password, algoritmHash, input_encoding, encoding);
-                  console.log("usuario: " + hashUser);
-                  console.log("senha: " + hashPassword);
+            // Autenticar user no banco
 
-                  // Autenticar user
-
-                  // Retornar um outro token, com uma validade maior
-                  return res.json({
-                     result: {
-                        token: decoded.data
-                     }
-                  });
+            // Retornar um outro token, com uma validade maior
+            return res.json({
+               result: {
+                  token: decoded.data
                }
             });
+      }
 
       // Se excedeu a quantidade de tentativas pela 1ª vez, atualiza timeForNextRequest
       } else {

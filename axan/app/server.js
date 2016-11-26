@@ -8,6 +8,8 @@ var port = 3000;
 var solicitarAcesso = require('../auth/solicitarAcesso');
 // Criando uma instância de logonUsuario
 var logon = require('../auth/logonUsuario');
+// Criando uma instância de registerUsuario
+var cadastarUsuario = require('../auth/registerUsuario');
 
 // Escopo global
 // Dicionário usando ipOrigem como chave, contendo numberRequestKeyLogon, numberRequestLogon e key
@@ -18,9 +20,11 @@ global.timeForNextRequest = ms('30s');
 
 // http://expressjs.com/pt-br/guide/error-handling.html
 
-app.post('/api/logon/solicita-acesso', solicitarAcesso);
+app.post('/api/security/logon/solicita-acesso', solicitarAcesso);
 
-app.post('/api/logon', logon);
+app.post('/api/security/logon/:encryptedData', logon);
+
+app.post('/api/security/register/user/:encryptedData', cadastarUsuario);
 
 // Iniciando o servidor
 app.listen(port, function () {

@@ -1,83 +1,101 @@
-const gerarHash = require('../utils/gerarHash');
 var jwt = require('jsonwebtoken');
 var ms = require('ms');
 
+const getKey = require('../utils/getKey');
+const gerarHash = require('../utils/gerarHash');
+const decrypt = require('../utils/decryptData');
+const usuarioDao = require('../dao/usuarioDao');
+
 const msgError = 'Quantidade máxima de solicitações de logon excedida';
 
-// Utilizado para o algoritmo HASH
-const algoritmHash = 'sha512';
+// Utilizado para o algoritmo decrypt na comunicação com o Client
+const algorithmEncrypt = 'aes-256-ctr';
+const output_encoding_aes = 'hex';
+
+// Utilizado para o algoritmo HASH (HMac) do user e password
+const algorithmHash = 'sha512';
 const input_encoding = 'utf8';
-const encoding = 'base64';
+const output_encoding_hash = 'base64';
+
+// Chaves utilizadas para criptografar os usuarios e as senhas
+const users_key = getKey('users_key');
+const passwords_key = getKey('passwords_key');
 
 module.exports = function(req, res) {
 
-   const ipOrigem =  req.connection.remoteAddress;
-   const token = req.headers['x-access-token'];
-   
-   // Verificar se o token foi informado
-   if (token) {
+	const ipOrigem =  req.connection.remoteAddress;
+   const encryptedData = req.params.encryptedData;
+	console.log(encryptedData);
+
+   // Verificar se o encryptedData foi informado
+   if (encryptedData) {
       // Verificar se esse ip está na lista de acesso 
       var user = dicUsers[ipOrigem];
       if (user) {
          console.log('qtd tentativas logon user: ' + user.numberRequestLogon);
          // Se o tempo de espera está excedido, verifica se já passou o tempo de espera
          if (Date.now() < user.timeForNextRequest) {
-            // Lançar um trow
             user.numberRequestLogon = 0;
             const tempoEspera = ms((user.timeForNextRequest - Date.now()), { long: true });
             console.log(msgError + ', aguarde: ' + tempoEspera);
             return res.status(400).send(msgError + ', aguarde: ' + tempoEspera);
-      // Se não excedeu a quantidade de tentativas incrementa numberRequestLogon
-      } else if (user.numberRequestLogon <= maxNumberRequestLogon) {
-            user.numberRequestLogon += 1;
+      	// Se não excedeu a quantidade de tentativas incrementa numberRequestLogon
+      	} else if (user.numberRequestLogon <= maxNumberRequestLogon) {
+				user.numberRequestLogon += 1;
 
-            // Gerar os hashs do user e password 
-            const hashUser = gerarHash(decoded.data.user, algoritmHash, input_encoding, encoding);
-            const hashPassword = gerarHash(decoded.data.password, algoritmHash, input_encoding, encoding);
-            console.log("usuario: " + hashUser);
-            console.log("senha: " + hashPassword);
+				try {
+					var userInfo = decrypt(encryptedData, algorithmEncrypt, user.key, input_encoding, output_encoding_aes);
+					userInfo = JSON.parse(userInfo);
+					console.log('conseguiu descriptografar os dados enviados');
+				} catch (error) {
+					console.log(error.name + " - " + error.message);
+					return res.status(400).send(error.name + " - " + error.message);
+				}
+				// Gerar os hashs do user e password 
+				const hashUser = gerarHash(userInfo.user, algorithmHash, users_key, input_encoding, output_encoding_hash);
+				const hashPassword = gerarHash(userInfo.password, algorithmHash, passwords_key, input_encoding, output_encoding_hash);
+				
+				// Autenticar user no banco...
+				const userAuth = usuarioDao.autenticar(hashUser, hashPassword);
 
-            // Autenticar user no banco
-
-            // Retornar um outro token, com uma validade maior
-            return res.json({
-               result: {
-                  token: decoded.data
-               }
-            });
-      }
-
-      // Se excedeu a quantidade de tentativas pela 1ª vez, atualiza timeForNextRequest
-      } else {
-         // Lançar um trow
-         user.timeForNextRequest = Date.now() + global.timeForNextRequest;
-         console.log(msgError + ', aguarde: ' + ms(global.timeForNextRequest, { long: true }));
-         return res.json({
-            result: {
-               error: msgError + ', aguarde: ' + ms(global.timeForNextRequest, { long: true })
-            }
-         });
-      }
+				// Conseguiu autenticar o usuario
+				if (userAuth) {
+					// Cria um jwt com as informações do usuario, para autenticar e controlar o acesso posteriormente 
+					const token = jwt.sign({
+						exp: Date.now() + ms('7 days'),
+						algorithm: 'ES384', 
+						data: {
+							userId: userAuth.id,
+							userType: userAuth.tipo
+						}
+					}, user.key);
+					
+					return res.json({
+						result: {
+							token: token,
+							usuario: {
+								id: userAuth.id,
+								nome: userAuth.nome
+							},
+							roles: [userAuth.tipo]
+						}
+					});
+				// Não conseguiu autenticar
+				} else {
+					return res.status(400).send("Usuário ou senha incorretos");
+				}
+			// Se excedeu a quantidade de tentativas pela 1ª vez, atualiza timeForNextRequest
+			} else {
+				user.timeForNextRequest = Date.now() + global.timeForNextRequest;
+				console.log(msgError + ', aguarde: ' + ms(global.timeForNextRequest, { long: true }));
+				return res.status(400).send(msgError + ', aguarde: ' + ms(global.timeForNextRequest, { long: true }));
+			}
       // Não encontrou o usuario
       } else {
-         return res.json({
-            result: {
-               error: {
-                  name: 'UserNotFoundError',
-                  message: 'user not found'
-               }
-            }
-         });
+         return res.status(400).send("Primeiro solicite acesso");
       }
-   // Não encontrou o token
-   } else {
-      return res.json({
-         result: {
-            error: {
-               name: 'TokenNotFoundError',
-               message: 'jwt not found'
-            }
-         }
-      });
-   }
+   // Não encontrou os dados
+	} else {
+		return res.status(400).send("Dados incorretos");
+	}
 };

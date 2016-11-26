@@ -1,4 +1,4 @@
-var jwt = require('jsonwebtoken');
+/*var jwt = require('jsonwebtoken');
 var ms = require('ms');
 var gerarChaveSimetrica = require('./gerarChaveSimetrica');
 
@@ -17,4 +17,10 @@ var token = jwt.sign({
 console.log('token: ' + token);
 
 var decoded = jwt.verify(token, secretKey);
-console.log(decoded.data);
+console.log(decoded.data);*/
+
+//https://github.com/kelektiv/node-uuid
+var uuid = require('node-uuid');
+
+console.log(uuid.v4());
+

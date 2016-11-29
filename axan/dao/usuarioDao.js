@@ -1,9 +1,9 @@
 module.exports = {
 
-   autenticar: function(hashUser, hashPassword) {
+   autenticar: function(hashUser, hashPassword, salt) {
       
-      const myHashUser = '/f6/g96q+ejeRcesEeim4j/9M3ZyBgifzO3DaF0UPNEqsWOGFxv8wj6QkY4A/6osjgQADOGBuHPH9vxu8E1NbQ==';
-      const myHashPass = 'oFUHCNqctNSCRzX+IxX/1l9kqIE/72+xxb55HytGwFEhdVFc4+Z9Fjb3FLAWLSUjfSrsNy+iZrupXZUhPx13vQ==';
+      const myHashUser = 'qEQdQYXYJifU2BUgtedtnrsNpwxiX31esbz+wMiQr8d+PkpM9fUNCe+0oFSY9Lt5aSAFUUfBWZ4ZnK34Ex42qQ==';
+      const myHashPass = 'IwefSyLkoJ0AllUupvdM+JZFEmrPQ9Zzo8dZa0ge1nID8BrH7rn9OEM6f8ndjfmms3k01ScWQqyuhyqNH5eaAw==';
 
       //buscar por esses hashs no banco no mesmo registro
       //se achar 
@@ -27,10 +27,14 @@ module.exports = {
 
    },
 
-   cadastar: function(hashUser, hashPassword, name) {
-      console.log('cadastrando usuário...');
-      console.log('userHash     : ' + hashUser);
-      console.log('passwordHash : ' + hashPassword);
+   cadastar: function(hashUser, hashPassword, users_salt, passwords_salt, name) {
+      console.log('cadastrando usuário ' + name + '...');
+      console.log('userHash      : ' + hashUser);
+      console.log('passwordHash  : ' + hashPassword);
+      console.log('users_salt    : ' + users_salt);
+      console.log('passwords_salt: ' + passwords_salt);
+
+      return true;
    }
 
 };

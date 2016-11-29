@@ -1,7 +1,7 @@
 var jwt = require('jsonwebtoken');
 var ms = require('ms');
 
-const getKey = require('../utils/getKey');
+const getSalt = require('../utils/getKey');
 const gerarHash = require('../utils/gerarHash');
 const decrypt = require('../utils/decryptData');
 const usuarioDao = require('../dao/usuarioDao');
@@ -17,9 +17,9 @@ const algorithmHash = 'sha512';
 const input_encoding = 'utf8';
 const output_encoding_hash = 'base64';
 
-// Chaves utilizadas para criptografar os usuarios e as senhas
-const users_key = getKey('users_key');
-const passwords_key = getKey('passwords_key');
+// Utilizado como salt, para complementar o hash do usuario e da senha 
+const users_salt = getSalt('users_key');
+const passwords_salt = getSalt('passwords_key');
 
 module.exports = function(req, res) {
 
@@ -52,8 +52,8 @@ module.exports = function(req, res) {
 					return res.status(400).send(error.name + " - " + error.message);
 				}
 				// Gerar os hashs do user e password 
-				const hashUser = gerarHash(userInfo.user, algorithmHash, users_key, input_encoding, output_encoding_hash);
-				const hashPassword = gerarHash(userInfo.password, algorithmHash, passwords_key, input_encoding, output_encoding_hash);
+				const hashUser = gerarHash(userInfo.user, algorithmHash, users_salt, input_encoding, output_encoding_hash);
+				const hashPassword = gerarHash(userInfo.password, algorithmHash, passwords_salt, input_encoding, output_encoding_hash);
 				
 				// Autenticar user no banco...
 				const userAuth = usuarioDao.autenticar(hashUser, hashPassword);
@@ -65,8 +65,7 @@ module.exports = function(req, res) {
 						exp: Date.now() + ms('7 days'),
 						algorithm: 'ES384', 
 						data: {
-							userId: userAuth.id,
-							userType: userAuth.tipo
+							userId: userAuth.id
 						}
 					}, user.key);
 					

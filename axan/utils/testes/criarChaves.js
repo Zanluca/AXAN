@@ -19,7 +19,6 @@ fs.writeFileSync('keys/users_key.prt', users_key_encrypt);
 users_key_encrypt = fs.readFileSync('keys/users_key.prt', {encoding: 'utf8'});
 console.log('users_key decrypt: ' + decrypt(users_key_encrypt, algorithm, masterKey, 'utf8', 'base64'));
 
-
 var passwords_key = rand.generateKey(64);
 console.log('passw_key gerada : ' + passwords_key);
 var passwords_key_encrypt = encrypt(passwords_key, algorithm, masterKey, 'utf8', 'base64');

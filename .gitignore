@@ -2,3 +2,4 @@ node_modules/
 typings/
 .vscode/launch.json
 jsconfig.json
+axan/dao/configDB.js

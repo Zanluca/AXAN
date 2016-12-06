@@ -1,4 +1,4 @@
-const getSalt = require('../utils/getKey');
+const rand = require('generate-key');
 const gerarHash = require('../utils/gerarHash');
 const decrypt = require('../utils/decryptData');
 const usuarioDao = require('../dao/usuarioDao');
@@ -9,22 +9,19 @@ const msgError = 'Quantidade máxima de solicitações de logon excedida';
 const algorithmEncrypt = 'aes-256-ctr';
 const output_encoding_aes = 'hex';
 
-// Utilizado para o algoritmo HASH (HMac) do user e password
+// Utilizado para o algoritmo HASH do user e password
 const algorithmHash = 'sha512';
 const input_encoding = 'utf8';
 const output_encoding_hash = 'base64';
-
-// Utilizado como salt, para complementar o hash do usuario e da senha 
-const users_salt = getSalt('users_key');
-const passwords_salt = getSalt('passwords_key');
 
 module.exports = function(req, res) {
 
 	const ipOrigem =  req.connection.remoteAddress;
    const encryptedData = req.params.encryptedData;
+	var userDetails = req.query.details;
 
    // Verificar se o encryptedData foi informado
-   if (encryptedData) {
+   if (encryptedData && userDetails) {
       // Verificar se esse ip está na lista de acesso 
       var user = dicUsers[ipOrigem];
       if (user) {
@@ -34,18 +31,23 @@ module.exports = function(req, res) {
 				userInfo = JSON.parse(userInfo);
 				console.log('conseguiu descriptografar os dados enviados');
 
+				userDetails = JSON.parse(userDetails);
+
+            // Utilizado como salt, para complementar o hash da senha
+            const password_salt = rand.generateKey(64);
 				// Gerar os hashs do user e password 
-				const hashUser = gerarHash(userInfo.user, algorithmHash, users_salt, input_encoding, output_encoding_hash);
-				const hashPassword = gerarHash(userInfo.password, algorithmHash, passwords_salt, input_encoding, output_encoding_hash);
+				const hashUser = gerarHash(userInfo.user, algorithmHash, '', input_encoding, output_encoding_hash);
+				const hashPassword = gerarHash(userInfo.password, algorithmHash, password_salt, input_encoding, output_encoding_hash);
 				
 				// Cadastrar user no banco...
-				const registered = usuarioDao.cadastar(hashUser, hashPassword, users_salt, passwords_salt, userInfo.user);
-				
-				if (registered) {
-					return res.status(200).send("Cadastro realizado com sucesso");
-				} else {
-					return res.status(400).send("Não conseguiu realizar cadastro");
-				}
+				const registered = usuarioDao.cadastar(hashUser, hashPassword, password_salt, userDetails, function (registered) {
+               console.log("registered: " + registered);
+               if (registered) {
+                  return res.status(200).send("Cadastro realizado com sucesso");
+               } else {
+                  return res.status(400).send("Não conseguiu realizar cadastro");
+               }
+            });
 
          } catch (error) {
 				console.log(error.name + " - " + error.message);

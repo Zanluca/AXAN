@@ -9,11 +9,10 @@ const output_encoding_hash = 'base64';
 
 module.exports = {
 
-   autenticar: function(hashUser, password, callback) {
+   autenticar: function(user, password, callback) {
       
-      const sql = "select ds_Senha, salt from usuario where nm_usuario = '"+hashUser+"';";
-
-      console.log(sql);
+      const hashUser = gerarHash(user, algorithmHash, '', input_encoding, output_encoding_hash);
+      const sql = "select ds_senha, salt from usuario where nm_usuario = '"+hashUser+"';";
       var db = new pg.Client(configDB);
 
       db.connect(function (err) {
@@ -35,10 +34,16 @@ module.exports = {
             if (hashPassword && salt) {
                const hashPasswordAtual = gerarHash(password, algorithmHash, salt, input_encoding, output_encoding_hash);
                if (hashPasswordAtual === hashPassword) {
-                  callback(true);
+                  console.log("hashs iguais");
+                  callback({
+                     id: 001,
+                     type: "client"   
+                  });
+               } else {
+                  callback(undefined);   
                }
             } else {
-               callback(false);
+               callback(undefined);
             }
 
             // disconnect the client
@@ -47,9 +52,6 @@ module.exports = {
             });
          });
       });
-
-      return undefined;
-
    },
 
    cadastar: function(hashUser, hashPassword, password_salt, userDetails, callback) {

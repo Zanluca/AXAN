@@ -10,6 +10,10 @@ var solicitarAcesso = require('../auth/solicitarAcesso');
 var logon = require('../auth/logonUsuario');
 // Criando uma instância de registerUsuario
 var cadastarUsuario = require('../auth/registerUsuario');
+// Criando uma instância de usuario
+var usuario = require('./usuario');
+// Criando uma instância de varejista
+var varejista = require('./varejista');
 
 // Escopo global
 // Dicionário usando ipOrigem como chave, contendo numberRequestKeyLogon, numberRequestLogon e key
@@ -25,6 +29,14 @@ app.post('/api/security/logon/solicita-acesso', solicitarAcesso);
 app.post('/api/security/logon/:encryptedData', logon);
 
 app.post('/api/security/register/user/:encryptedData', cadastarUsuario);
+
+app.post('/api/user/client/get-lista-compras', usuario.getListaDeCompras);
+
+app.post('/api/user/client/add-item-lista-compras', usuario.addItemListaCompras);
+
+app.post('/api/user/varejista/cadastrar-produto', varejista.cadastrarProduto);
+
+app.post('/api/user/varejista/alterar-preco-produto', varejista.alterarPrecoProduto);
 
 // Iniciando o servidor
 app.listen(port, function () {

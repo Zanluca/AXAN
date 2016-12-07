@@ -1,4 +1,3 @@
-var gerarSequenciaAleatoria = require('../utils/gerarSequeciaAleatoria');
 var randKey = require('generate-key');
 var ms = require('ms');
 
@@ -44,7 +43,7 @@ var autorizarAcesso = function (req, res) {
    // Retorna um json com a sequência aleatória
    return res.json({
       result: {
-         token: user.key
+         key: user.key
       }
    });
 }

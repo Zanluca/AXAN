@@ -1,3 +1,4 @@
+const validarToken = require('../auth/validarJWT');
 const usuarioDao = require('../dao/usuarioDao');
 
 var usuario = {

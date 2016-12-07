@@ -12,7 +12,7 @@ module.exports = {
    autenticar: function(user, password, callback) {
       
       const hashUser = gerarHash(user, algorithmHash, '', input_encoding, output_encoding_hash);
-      const sql = "select ds_senha, salt from usuario where nm_usuario = '"+hashUser+"';";
+      const sql = "select tipo, ds_senha, salt from usuario where nm_usuario = '"+hashUser+"';";
       var db = new pg.Client(configDB);
 
       db.connect(function (err) {
@@ -36,8 +36,8 @@ module.exports = {
                if (hashPasswordAtual === hashPassword) {
                   console.log("hashs iguais");
                   callback({
-                     id: 001,
-                     type: "client"   
+                     id: result.rows[0].id,
+                     type: result.rows[0].tipo
                   });
                } else {
                   callback(undefined);   
@@ -56,8 +56,9 @@ module.exports = {
 
    cadastar: function(hashUser, hashPassword, password_salt, userDetails, callback) {
 
-      const sql = "select insert_user('"+hashUser+"','"+hashPassword+"','"+password_salt+"',to_date('"+userDetails.dateOfBirth+"','dd/mm/yyyy'),"+
-      "'"+userDetails.email+"', "+userDetails.phone.number+","+userDetails.phone.ddd+",'"+userDetails.phone.country+"')";
+      sql = "insert into usuario (nm_usuario, ds_senha, salt, tipo, ds_email, dt_nascimento, nr_celular, nr_ddd, cd_pais)"+
+      "values ('"+hashUser+"','"+hashPassword+"','"+password_salt+"','"+userDetails.type+"', '"+userDetails.email+
+      "',to_date('"+userDetails.dateOfBirth+"','dd/mm/yyyy'),"+userDetails.phone.number+","+userDetails.phone.ddd+",'"+userDetails.phone.country+"')";
 
       console.log(sql);
       var db = new pg.Client(configDB);
@@ -83,6 +84,37 @@ module.exports = {
             });
          });
       });
+   },
+
+   cadastrarProduto: function(nome, preco, cnpj_varejista, cd_categoria) {
+
+         const sql = "insert into produto (nm_produto, qt_preco, cnpj_varejista, cd_categoria)" + 
+         "values ('"+nome+"',"+preco+",'"+cnpj_varejista+"',"+cd_categoria+")";
+
+         var db = new pg.Client(configDB);
+
+         db.connect(function (err) {
+            
+            if (err) throw err;
+            
+            db.query(sql, null, function (err, result) {
+               if (err) {
+                  db.end(function (err) {
+                     if (err) throw err; else console.log("conexão encerrada");
+                  });
+                  callback(false);
+                  throw err;
+               }
+
+               callback(true);
+
+               // disconnect the client
+               db.end(function (err) {
+                  if (err) throw err; else console.log("conexão encerrada");
+               });
+            });
+         });
+
    },
 
 };

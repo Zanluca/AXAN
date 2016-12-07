@@ -14,15 +14,20 @@ module.exports = function(req, res) {
 	// Aconteceu um erro na decodificação do token
 		if (err) {
 			console.log(err.name + " - " + err.message);
-			return res.status(400).send(err.name + " - " + err.message);
+			res.status(400).send(err.name + " - " + err.message);
+         return;
 		// Conseguiu decodificcar o token, fazer verificações
 		} else {
 			console.log("info token: " + decoded.data);
 			// Verificar se o token não expirou
 			if (decoded.exp <= Date.now()) {
 				console.log('Erro: Acesso Expirado, faça login novamente')
-				return res.status(400).send('Erro: Acesso Expirado, faça login novamente');
-			}
+				res.status(400).send('Erro: Acesso Expirado, faça login novamente');
+            return;
+         // Não expirou, é válido
+			} else {
+            return true;
+         }
 		}
 	});
 

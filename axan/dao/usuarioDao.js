@@ -12,7 +12,7 @@ module.exports = {
 
    autenticar: function(user, password, callback) {
       
-      const hashUser = gerarHash(user, algorithmHash, '', input_encoding, output_encoding_hash);
+      const hashUser = gerarHash(user, 'sha256', '', input_encoding, output_encoding_hash);
       const sql = "select id_usuario, tipo, ds_senha, salt from usuario where nm_usuario = '"+hashUser+"';";
       var db = new pg.Client(configDB);
 
@@ -87,13 +87,15 @@ module.exports = {
       });
    },
 
-   cadastrarProduto: function(nome, preco, cnpj_varejista, cd_categoria) {
+   cadastrarProduto: function(nome, preco, cnpj_varejista, callback) {
 
       const salt = fs.readFileSync('keys/salt_preco.prt', {encoding: 'utf8'});
-      const hash_preco = gerarHash(password, algorithmHash, salt, input_encoding, output_encoding_hash);
+      const hash_preco = gerarHash(preco, algorithmHash, salt, input_encoding, output_encoding_hash);
 
       const sql = "insert into produto (nm_produto, qt_preco, cnpj_varejista, hash_preco, cd_categoria)" + 
-      "values ('"+nome+"',"+preco+",'"+cnpj_varejista+"','"+hash_preco+"',cd_categoria)";
+      "values ('"+nome+"',"+preco+",'"+cnpj_varejista+"','"+hash_preco+"',"+ 1 +")";
+
+      console.log(sql);
 
       var db = new pg.Client(configDB);
 

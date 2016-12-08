@@ -22,5 +22,21 @@ const funcionario = {
 		type: "admin"
 };
 
+const produto1 = {
+   nome: "Açucar 1Kg",
+   preco: 6.20, 
+   cod_cnpj: "12378965400"
+};
+
+const produto2 = {
+   nome: "Nescau 1Kg",
+   preco: 9.20, 
+   cod_cnpj: "12378965400"
+};
+
+
+
 console.log(JSON.stringify(cliente));
 console.log(JSON.stringify(funcionario));
+console.log(JSON.stringify(produto1));
+console.log(JSON.stringify(produto2));

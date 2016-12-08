@@ -34,9 +34,11 @@ app.post('/api/user/client/get-lista-compras', usuario.getListaDeCompras);
 
 app.post('/api/user/client/add-item-lista-compras', usuario.addItemListaCompras);
 
-app.post('/api/user/funcionario/cadastrar-produto', funcionario.cadastrarProduto);
+app.post('/api/user/funcionario/cadastrar-produto/:produto', funcionario.cadastrarProduto);
 
 app.post('/api/user/funcionario/alterar-preco-produto', funcionario.alterarPrecoProduto);
+
+app.post('/api/user/funcionario/verificar-integridade', funcionario.verificarIntegridade);
 
 // Iniciando o servidor
 app.listen(port, function () {

@@ -1,4 +1,5 @@
 var pg = require('pg');
+const fs = require('fs');
 const configDB = require('./configDB');
 const gerarHash = require('../utils/gerarHash');
 
@@ -12,7 +13,7 @@ module.exports = {
    autenticar: function(user, password, callback) {
       
       const hashUser = gerarHash(user, algorithmHash, '', input_encoding, output_encoding_hash);
-      const sql = "select tipo, ds_senha, salt from usuario where nm_usuario = '"+hashUser+"';";
+      const sql = "select id_usuario, tipo, ds_senha, salt from usuario where nm_usuario = '"+hashUser+"';";
       var db = new pg.Client(configDB);
 
       db.connect(function (err) {
@@ -36,7 +37,7 @@ module.exports = {
                if (hashPasswordAtual === hashPassword) {
                   console.log("hashs iguais");
                   callback({
-                     id: result.rows[0].id,
+                     id: result.rows[0].id_usuario,
                      type: result.rows[0].tipo
                   });
                } else {
@@ -88,32 +89,35 @@ module.exports = {
 
    cadastrarProduto: function(nome, preco, cnpj_varejista, cd_categoria) {
 
-         const sql = "insert into produto (nm_produto, qt_preco, cnpj_varejista, cd_categoria)" + 
-         "values ('"+nome+"',"+preco+",'"+cnpj_varejista+"',"+cd_categoria+")";
+      const salt = fs.readFileSync('keys/salt_preco.prt', {encoding: 'utf8'});
+      const hash_preco = gerarHash(password, algorithmHash, salt, input_encoding, output_encoding_hash);
 
-         var db = new pg.Client(configDB);
+      const sql = "insert into produto (nm_produto, qt_preco, cnpj_varejista, hash_preco, cd_categoria)" + 
+      "values ('"+nome+"',"+preco+",'"+cnpj_varejista+"','"+hash_preco+"',cd_categoria)";
 
-         db.connect(function (err) {
-            
-            if (err) throw err;
-            
-            db.query(sql, null, function (err, result) {
-               if (err) {
-                  db.end(function (err) {
-                     if (err) throw err; else console.log("conexão encerrada");
-                  });
-                  callback(false);
-                  throw err;
-               }
+      var db = new pg.Client(configDB);
 
-               callback(true);
-
-               // disconnect the client
+      db.connect(function (err) {
+         
+         if (err) throw err;
+         
+         db.query(sql, null, function (err, result) {
+            if (err) {
                db.end(function (err) {
                   if (err) throw err; else console.log("conexão encerrada");
                });
+               callback(false);
+               throw err;
+            }
+
+            callback(true);
+
+            // disconnect the client
+            db.end(function (err) {
+               if (err) throw err; else console.log("conexão encerrada");
             });
          });
+      });
 
    },
 

@@ -27,14 +27,14 @@ module.exports = function(req, res) {
       if (user) {
          try {
 				// Descriptorafa os dados recebidos do Client
-            var userInfo = decrypt(encryptedData, algorithmEncrypt, user.key, input_encoding, output_encoding_aes);
+        		var userInfo = decrypt(encryptedData, algorithmEncrypt, user.key, input_encoding, output_encoding_aes);
 				userInfo = JSON.parse(userInfo);
-				console.log('conseguiu descriptografar os dados enviados');
+				console.log('conseguiu descriptografar os dados enviados...');
 
 				userDetails = JSON.parse(userDetails);
 
-            // Utilizado como salt, para complementar o hash da senha
-            const password_salt = rand.generateKey(64);
+        		// Utilizado como salt, para complementar o hash da senha
+        		const password_salt = rand.generateKey(64);
 				// Gerar os hashs do user e password 
 				const hashUser = gerarHash(userInfo.user, algorithmHash, '', input_encoding, output_encoding_hash);
 				const hashPassword = gerarHash(userInfo.password, algorithmHash, password_salt, input_encoding, output_encoding_hash);
@@ -47,7 +47,7 @@ module.exports = function(req, res) {
                } else {
                   return res.status(400).send("Não conseguiu realizar cadastro");
                }
-            });
+        		});
 
          } catch (error) {
 				console.log(error.name + " - " + error.message);

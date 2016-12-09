@@ -71,6 +71,7 @@ db.connect(function (err) {
       // Iteração para montar o SQL de UPDATE dos hashs
       for (var i = 0; i < array_produtos.length; i++) {
          sql += "UPDATE produto SET hash_preco='"+array_produtos[i].hash+"' WHERE cd_produto="+array_produtos[i].cod+";\n";
+         //console.log(array_produtos[i].preco);
       }
       console.log(sql);
       // Executando UPDATE dos hashs

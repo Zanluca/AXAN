@@ -50,11 +50,12 @@ module.exports = function (done) {
 
          // Iteração para ler os dados já armazenados
          for (var i = 0; i < result.rows.length; i++) {
-
             // Utiliza o id também para preços iguais gerarem hashs diferentes
             saltAtual = result.rows[i].cd_produto + salt;
+            //console.log("Produto "+result.rows[i].cd_produto+" = " +saltAtual);
             // Gerando o hash para o preço do produto
             hash = gerarHash(result.rows[i].qt_preco, algorithmHash, saltAtual, input_encoding, output_encoding_hash);
+            //console.log("Produto "+result.rows[i].cd_produto+" = " +hash);
             // Salvando as informações em um vetor
             if (hash !== result.rows[i].hash_preco) {
                produto = {
@@ -62,7 +63,7 @@ module.exports = function (done) {
                   nome: result.rows[i].nm_produto,
                   preco: result.rows[i].qt_preco
                }
-               array_produtos.push (produto);
+               array_produtos.push(produto);
                console.log("Produto com código: " + result.rows[i].cd_produto + " não está com o preço correto");
             }
          }

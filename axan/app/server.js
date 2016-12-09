@@ -29,18 +29,26 @@ app.post('/api/security/logon/solicita-acesso', solicitarAcesso);
 app.post('/api/security/logon/:encryptedData', logon);
 
 app.post('/api/security/register/user/:encryptedData', cadastarUsuario);
-
+// terminar a implementação e testar
 app.post('/api/user/client/get-lista-compras', usuario.getListaDeCompras);
-
+// terminar a implementação e testar
 app.post('/api/user/client/add-item-lista-compras', usuario.addItemListaCompras);
-
+// testar o hash
 app.post('/api/user/funcionario/cadastrar-produto/:produto', funcionario.cadastrarProduto);
-
-app.post('/api/user/funcionario/alterar-preco-produto', funcionario.alterarPrecoProduto);
 
 app.post('/api/user/funcionario/verificar-integridade', funcionario.verificarIntegridade);
 
 // Iniciando o servidor
 app.listen(port, function () {
-  console.log('Server escutando na porta ' + port + '!');
+	console.log('Server escutando na porta ' + port + '!');
+	// Verificando a integridade dos dados...
+	const verificarIntegridade = require('../utils/verificarIntegridadePrecos');
+	verificarIntegridade(function (vetorProdutosAlterados) {
+		if (vetorProdutosAlterados && vetorProdutosAlterados.length > 0) {
+			console.log("Os seguintes Produtos estão com os preços alterados:");
+			console.log(JSON.stringify(vetorProdutosAlterados));
+		} else {
+			console.log("Todos os dados estão integros");
+		}
+	});
 });

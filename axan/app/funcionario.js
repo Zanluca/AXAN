@@ -20,23 +20,20 @@ var funcionario = {
                console.log("Usuário válido...");
                const produto = JSON.parse(req.params.produto);
                usuarioDao.cadastrarProduto(produto.nome, produto.preco, produto.cod_cnpj, function (cadastrou) {
-                     if (cadastrou) {
-                        console.log("cadastrou");
-                     } else {
-                        console.log("não cadastrou");
-                     }
+               	if (cadastrou) {
+                		console.log("Produto cadastrado...");
+                		res.status(200).send("Produto cadastrado");
+                	} else {
+                		console.log("Produto não cadastrado...");
+                		return res.status(200).send("Produto não cadastrado");
+                	}
                });
-               return res.status(200).send("Produto cadastrado");
             // não é admin
             } else {
                return res.status(400).send("Você não tem permissão para realizar essa ação");
             }
 		   }
 		});
-	},
-
-	alterarPrecoProduto: function(req, res) {
-
 	},
 
    verificarIntegridade: function(req, res) {
@@ -62,7 +59,6 @@ var funcionario = {
                   }
                   return res.status(200).send("Todos os dados estão integros");
                });
-
             // não é admin
             } else {
                return res.status(400).send("Você não tem permissão para realizar essa ação");

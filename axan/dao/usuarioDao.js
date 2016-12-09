@@ -1,6 +1,7 @@
 var pg = require('pg');
 const fs = require('fs');
 const configDB = require('./configDB');
+const getKey = require('../utils/getKey');
 const gerarHash = require('../utils/gerarHash');
 
 // Utilizado para o algoritmo HASH do user e password
@@ -11,9 +12,10 @@ const output_encoding_hash = 'base64';
 module.exports = {
 
    autenticar: function(user, password, callback) {
-      
-      const hashUser = gerarHash(user, 'sha256', '', input_encoding, output_encoding_hash);
+      console.log("autenticando...");
+      const hashUser = gerarHash(user, algorithmHash, '', input_encoding, output_encoding_hash);
       const sql = "select id_usuario, tipo, ds_senha, salt from usuario where nm_usuario = '"+hashUser+"';";
+      console.log(sql);
       var db = new pg.Client(configDB);
 
       db.connect(function (err) {
@@ -89,14 +91,9 @@ module.exports = {
 
    cadastrarProduto: function(nome, preco, cnpj_varejista, callback) {
 
-      const salt = fs.readFileSync('keys/salt_preco.prt', {encoding: 'utf8'});
-      const hash_preco = gerarHash(preco, algorithmHash, salt, input_encoding, output_encoding_hash);
-
-      const sql = "insert into produto (nm_produto, qt_preco, cnpj_varejista, hash_preco, cd_categoria)" + 
-      "values ('"+nome+"',"+preco+",'"+cnpj_varejista+"','"+hash_preco+"',"+ 1 +")";
-
-      console.log(sql);
-
+      // Buscar id para usar no salt
+      var sql = "select max(cd_produto) +1 as id from produto";
+      var id = "";
       var db = new pg.Client(configDB);
 
       db.connect(function (err) {
@@ -108,19 +105,102 @@ module.exports = {
                db.end(function (err) {
                   if (err) throw err; else console.log("conexão encerrada");
                });
-               callback(false);
+               console.log("Não conseguiu recuperar o último id");
                throw err;
             }
 
-            callback(true);
+            // id que será gerado quando registrar no banco
+            id = result.rows[0].id
+            var salt = getKey('salt_preco');
+            salt = id + salt;
+            console.log("salt = " +salt);
+            const precoH = '$'+preco; // Não esquecer que é 'sha256' para o preço
+            console.log("preco do hash: " + precoH);
+            const hash_preco = gerarHash(precoH, 'sha256', salt, input_encoding, output_encoding_hash);
+
+            sql = "insert into produto (cd_produto, nm_produto, qt_preco, cnpj_varejista, hash_preco, cd_categoria)" + 
+            "values ("+id+",'"+nome+"',"+preco+",'"+cnpj_varejista+"','"+hash_preco+"',"+ 1 +")";
+            console.log(sql);
+
+            db.query(sql, null, function (err, result) {
+               if (err) {
+                  console.log("###############");
+                  db.end(function (err) {
+                     if (err) throw err; else console.log("conexão encerrada");
+                  });
+                  callback(false);
+                  throw err;
+               }
+            });
 
             // disconnect the client
             db.end(function (err) {
                if (err) throw err; else console.log("conexão encerrada");
             });
          });
+            callback(true);
       });
-
    },
+
+   listarCompras: function(userId, callback) {
+      
+      const sql = "SELECT ("+userId+")";
+      console.log(sql);
+      var db = new pg.Client(configDB);
+
+      db.connect(function (err) {
+         
+         if (err) throw err;
+         
+         db.query(sql, null, function (err, result) {
+            if (err) {
+               db.end(function (err) {
+                  if (err) throw err; else console.log("conexão encerrada");
+               });
+            }
+            var produto = {};
+            var array_produtos = [];
+            // Iteração para ler os dados
+            for (var i = 0; i < result.rows.length; i++) {
+               produto = {
+                  cod: result.rows[i].cd_produto,
+                  nome: result.rows[i].nm_produto,
+                  preco: result.rows[i].qt_preco
+               }
+               array_produtos.push(produto);
+            }
+            callback(array_produtos);
+            // disconnect the client
+            db.end(function (err) {
+               if (err) throw err; else console.log("conexão encerrada");
+            });
+         });
+      });
+   },
+
+   addItemListaCompras: function(userId, idProduto, callback) {
+
+      const sql = "SELECT ("+userId+")";
+      console.log(sql);
+      var db = new pg.Client(configDB);
+
+      db.connect(function (err) {
+         
+         if (err) throw err;
+         
+         db.query(sql, null, function (err, result) {
+            if (err) {
+               db.end(function (err) {
+                  if (err) throw err; else console.log("conexão encerrada");
+               });
+            }
+            callback(array_produtos);
+            // disconnect the client
+            db.end(function (err) {
+               if (err) throw err; else console.log("conexão encerrada");
+            });
+         });
+      });
+   }
 
 };

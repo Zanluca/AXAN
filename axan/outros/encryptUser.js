@@ -1,10 +1,10 @@
 var crypto = require('crypto');
 var encrypt = require('../utils/encryptData');
 
-const key = 'sfg8GMpvpKcnriorcKtJGQuM7K4AMqHF6tFTUzeAkF7XFZzCzltp3XfZaItZbfV5';
+const key = 'K2kqqMSM2pE5UlduwF0rdipaNO65ihcB8bPuhnAGTS7KLWg8BEWBZKuH4mfi3NkB';
 var data = {
-	user: 'tamires',
-	password: 'qwert'
+	user: 'joao',
+	password: '123456'
 };
 
 data = JSON.stringify(data);

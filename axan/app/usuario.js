@@ -13,12 +13,15 @@ var usuario = {
 				return res.status(400).send(err.name + " - " + err.message);
 			}
 			console.log("Token Válido...");
-
+         console.log(tokenData);
 			if (tokenData) {
             // É client
             if (tokenData.roles == 'client') {
                console.log("Usuário válido...");
-               usuarioDao.listarCompras(tokenData.userId, function (listaProdutos) {
+
+               return res.status(200).send("Não há produtos na lista de compras");
+
+               /*usuarioDao.listarCompras(tokenData.userId, function (listaProdutos) {
                   if (listaProdutos && listaProdutos.length > 0) {
                      console.log("Listando produtos...");
                      return res.status(200).send(listaProdutos);
@@ -26,7 +29,9 @@ var usuario = {
                      console.log("Não há produtos para listar...");
                      return res.status(200).send("Não há produtos na lista de compras");
                   }
-               });
+               });*/
+            } else {
+               return res.status(200).send("Apenas os clientes podem consultar suas listas");
             }
          }
 		 });
